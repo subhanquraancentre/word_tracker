@@ -222,12 +222,12 @@
         });
         
         const chartColors = [
-            '#4CAF50',  // Alhamdulillah (Green)
-            '#2196F3',  // Jazakallah (Blue)
-            '#FFC107',  // Mashallah (Yellow)
-            '#E91E63',  // Inshallah (Pink)
-            '#9C27B0',  // Ya Rahamkallah (Purple)
-            '#00BCD4'   // Subhanallah (Cyan)
+            '#4CAF50',
+            '#2196F3',
+            '#FFC107',
+            '#E91E63',
+            '#9C27B0',
+            '#00BCD4'
         ];
 
         const ctx = document.getElementById('dailyChart').getContext('2d');
@@ -241,10 +241,11 @@
                     label: name,
                     data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name] || 0),
                     borderColor: chartColors[index],
-                    backgroundColor: chartColors[index] + '40', // Semi-transparent color
+                    backgroundColor: chartColors[index] + '40',
                     borderWidth: 2,
                     fill: false,
-                    tension: 0.1
+                    tension: 0.1,
+                    hidden: false // Ensure all datasets are visible by default
                 }))
             },
             options: {
