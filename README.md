@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,12 +96,14 @@
         .reset-button-container button:hover {
             background-color: #d32f2f;
         }
-        .chart-title-container {
-            text-align: center;
+        .chart-data-container {
+            margin-top: 20px;
+            font-size: 1em;
             color: #2e7d32;
+        }
+        .date-data {
             font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 1.5em;
+            margin-bottom: 5px;
         }
 
         @media (max-width: 768px) {
@@ -160,20 +161,19 @@
     </div>
 
     <div class="chart-container">
-        <div class="chart-title-container" id="chart-title">Daily Clicks</div>
         <canvas id="dailyChart"></canvas>
     </div>
+
+    <div class="chart-data-container" id="data-display"></div>
 
     <script>
         const buttonNames = ['Alhamdulillah', 'Jazakallah', 'Mashallah', 'Inshallah'];
         const buttonIds = ['button1', 'button2', 'button3', 'button4'];
         const counterIds = ['counter1', 'counter2', 'counter3', 'counter4'];
         
-        // Load historical data from local storage
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
         let today = new Date().toLocaleDateString();
         
-        // If today's data doesn't exist, initialize it
         if (!historicalData[today]) {
             historicalData[today] = {
                 'Alhamdulillah': 0,
@@ -183,34 +183,46 @@
             };
         }
 
-        // Update UI with today's counts
         buttonNames.forEach((name, index) => {
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
 
-        // Get dates for chart labels
-        const chartLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
-        
-        // Prepare datasets for the chart
-        const datasets = buttonNames.map((name, index) => {
-            return {
-                label: name,
-                data: chartLabels.map(date => historicalData[date][name]),
-                backgroundColor: ['rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)', 'rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)'][index],
-                borderColor: ['rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)', 'rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)'][index],
-                borderWidth: 1,
-                fill: false
-            };
-        });
-
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dailyChart = new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
-                labels: chartLabels,
-                datasets: datasets
+                labels: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)),
+                datasets: buttonNames.map((name, index) => ({
+                    label: name,
+                    data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name]),
+                    backgroundColor: ['rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)', 'rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)'][index],
+                    borderColor: ['rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)', 'rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)'][index],
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.1
+                }))
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Performance Over Time'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: (tooltipItem) => {
+                                return `Date: ${tooltipItem[0].label}`;
+                            },
+                            label: (tooltipItem) => {
+                                const datasetLabel = tooltipItem.dataset.label;
+                                const value = tooltipItem.raw;
+                                return `${datasetLabel}: ${value}`;
+                            }
+                        }
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: true,
@@ -218,14 +230,12 @@
                             display: true,
                             text: 'Clicks'
                         }
-                    }
-                },
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Performance Over Time'
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
                     }
                 }
             }
@@ -234,17 +244,15 @@
         function updateData() {
             localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
             
-            // Update chart data for today
-            dailyChart.data.datasets.forEach(dataset => {
-                dataset.data = chartLabels.map(date => historicalData[date][dataset.label]);
-            });
-            
-            // Check if a new date needs to be added
             const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
-            if (JSON.stringify(updatedLabels) !== JSON.stringify(dailyChart.data.labels)) {
-                 dailyChart.data.labels = updatedLabels;
-            }
+            dailyChart.data.labels = updatedLabels;
+            
+            buttonNames.forEach((name, index) => {
+                dailyChart.data.datasets[index].data = updatedLabels.map(date => historicalData[date][name]);
+            });
+
             dailyChart.update();
+            displayTableData();
         }
 
         buttonIds.forEach((id, index) => {
@@ -259,11 +267,13 @@
         const resetButton = document.getElementById('resetButton');
         resetButton.addEventListener('click', () => {
             if (confirm("Kya aap sach mein sabhi counters ko reset karna chahte hain?")) {
-                historicalData[today] = {
-                    'Alhamdulillah': 0,
-                    'Jazakallah': 0,
-                    'Mashallah': 0,
-                    'Inshallah': 0
+                historicalData = {
+                    [today]: {
+                        'Alhamdulillah': 0,
+                        'Jazakallah': 0,
+                        'Mashallah': 0,
+                        'Inshallah': 0
+                    }
                 };
                 
                 buttonNames.forEach((name, index) => {
@@ -272,5 +282,30 @@
                 updateData();
             }
         });
+        
+        function displayTableData() {
+            const dataDisplay = document.getElementById('data-display');
+            dataDisplay.innerHTML = ''; // Clear previous data
+            
+            const chartLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+
+            chartLabels.forEach(date => {
+                const dateDiv = document.createElement('div');
+                dateDiv.classList.add('date-data');
+                dateDiv.innerHTML = `**Date: ${date}**`;
+                dataDisplay.appendChild(dateDiv);
+                
+                const ul = document.createElement('ul');
+                buttonNames.forEach(name => {
+                    const li = document.createElement('li');
+                    li.textContent = `${name}: ${historicalData[date][name]}`;
+                    ul.appendChild(li);
+                });
+                dataDisplay.appendChild(ul);
+            });
+        }
+        
+        // Initial call to display data
+        displayTableData();
     </script>
 </body>
