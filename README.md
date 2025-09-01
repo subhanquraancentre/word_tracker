@@ -60,6 +60,8 @@
             background-color: #4CAF50;
             color: white;
             transition: background-color 0.3s;
+            text-align: center;
+            min-width: 120px;
         }
         .counter-container button:hover {
             background-color: #388E3C;
@@ -86,8 +88,8 @@
             margin-top: 20px;
         }
         .button-group-container button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 8px 16px; /* Buttons ka size chhota kiya */
+            font-size: 14px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
@@ -95,16 +97,16 @@
             transition: background-color 0.3s;
         }
         #saveButton {
-            background-color: #2196F3;
+            background-color: #4CAF50; /* Green color for Save button */
         }
         #saveButton:hover {
-            background-color: #1976D2;
+            background-color: #388E3C;
         }
         #resetButton {
-            background-color: #F44336;
+            background-color: #4CAF50; /* Green color for Reset button */
         }
         #resetButton:hover {
-            background-color: #D32F2F;
+            background-color: #388E3C;
         }
         .chart-data-container {
             margin-top: 20px;
@@ -119,6 +121,27 @@
         .date-data {
             font-weight: bold;
             margin-bottom: 5px;
+        }
+        .chart-legend {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #2E7D32;
+        }
+        .legend-color-box {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 3px;
         }
 
         @media (max-width: 768px) {
@@ -204,12 +227,10 @@
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
         let today = new Date().toLocaleDateString();
 
-        // Fix for "undefined" issue
         if (!historicalData[today]) {
             historicalData[today] = {};
             buttonNames.forEach(name => historicalData[today][name] = 0);
         } else {
-            // Check if new buttons were added to existing data
             buttonNames.forEach(name => {
                 if (typeof historicalData[today][name] === 'undefined') {
                     historicalData[today][name] = 0;
@@ -225,10 +246,12 @@
         const dailyChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)),
+                labels: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => {
+                    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                }),
                 datasets: buttonNames.map((name, index) => ({
                     label: name,
-                    data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name]),
+                    data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name] || 0),
                     borderColor: ['#4CAF50', '#388E3C', '#2E7D32', '#1B5E20', '#A5D6A7', '#66BB6A'][index],
                     backgroundColor: ['rgba(76, 175, 80, 0.2)', 'rgba(56, 142, 60, 0.2)', 'rgba(46, 125, 50, 0.2)', 'rgba(27, 94, 32, 0.2)', 'rgba(165, 214, 167, 0.2)', 'rgba(102, 187, 106, 0.2)'][index],
                     borderWidth: 2,
@@ -269,6 +292,10 @@
                         title: {
                             display: true,
                             text: 'Date'
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 10
                         }
                     }
                 }
@@ -278,11 +305,13 @@
         function updateData() {
             localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
             
-            const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+            const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => {
+                return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            });
             dailyChart.data.labels = updatedLabels;
             
             buttonNames.forEach((name, index) => {
-                dailyChart.data.datasets[index].data = updatedLabels.map(date => historicalData[date][name]);
+                dailyChart.data.datasets[index].data = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name] || 0);
             });
 
             dailyChart.update();
@@ -329,12 +358,12 @@
             chartLabels.forEach(date => {
                 const dateDiv = document.createElement('div');
                 dateDiv.classList.add('date-data');
-                dateDiv.innerHTML = `**Date: ${date}**`;
+                dateDiv.innerHTML = `**Date: ${new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}**`;
                 dataDisplay.appendChild(dateDiv);
                 
                 const ul = document.createElement('ul');
                 buttonNames.forEach(name => {
-                    if (typeof historicalData[date][name] !== 'undefined') {
+                    if (historicalData[date][name] || historicalData[date][name] === 0) {
                         const li = document.createElement('li');
                         li.textContent = `${name}: ${historicalData[date][name]}`;
                         ul.appendChild(li);
