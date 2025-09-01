@@ -88,7 +88,7 @@
             margin-top: 20px;
         }
         .button-group-container button {
-            padding: 8px 16px; /* Buttons ka size chhota kiya */
+            padding: 8px 16px;
             font-size: 14px;
             cursor: pointer;
             border: none;
@@ -97,13 +97,13 @@
             transition: background-color 0.3s;
         }
         #saveButton {
-            background-color: #4CAF50; /* Green color for Save button */
+            background-color: #4CAF50;
         }
         #saveButton:hover {
             background-color: #388E3C;
         }
         #resetButton {
-            background-color: #4CAF50; /* Green color for Reset button */
+            background-color: #4CAF50;
         }
         #resetButton:hover {
             background-color: #388E3C;
@@ -121,27 +121,6 @@
         .date-data {
             font-weight: bold;
             margin-bottom: 5px;
-        }
-        .chart-legend {
-            list-style: none;
-            padding: 0;
-            margin: 10px 0 0 0;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-        }
-        .chart-legend-item {
-            display: flex;
-            align-items: center;
-            font-size: 14px;
-            color: #2E7D32;
-        }
-        .legend-color-box {
-            width: 15px;
-            height: 15px;
-            margin-right: 5px;
-            border-radius: 3px;
         }
 
         @media (max-width: 768px) {
@@ -241,6 +220,15 @@
         buttonNames.forEach((name, index) => {
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
+        
+        const chartColors = [
+            '#4CAF50',  // Alhamdulillah (Green)
+            '#2196F3',  // Jazakallah (Blue)
+            '#FFC107',  // Mashallah (Yellow)
+            '#E91E63',  // Inshallah (Pink)
+            '#9C27B0',  // Ya Rahamkallah (Purple)
+            '#00BCD4'   // Subhanallah (Cyan)
+        ];
 
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dailyChart = new Chart(ctx, {
@@ -252,8 +240,8 @@
                 datasets: buttonNames.map((name, index) => ({
                     label: name,
                     data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name] || 0),
-                    borderColor: ['#4CAF50', '#388E3C', '#2E7D32', '#1B5E20', '#A5D6A7', '#66BB6A'][index],
-                    backgroundColor: ['rgba(76, 175, 80, 0.2)', 'rgba(56, 142, 60, 0.2)', 'rgba(46, 125, 50, 0.2)', 'rgba(27, 94, 32, 0.2)', 'rgba(165, 214, 167, 0.2)', 'rgba(102, 187, 106, 0.2)'][index],
+                    borderColor: chartColors[index],
+                    backgroundColor: chartColors[index] + '40', // Semi-transparent color
                     borderWidth: 2,
                     fill: false,
                     tension: 0.1
@@ -276,6 +264,16 @@
                                 const datasetLabel = tooltipItem.dataset.label;
                                 const value = tooltipItem.raw;
                                 return `${datasetLabel}: ${value}`;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#2E7D32',
+                            font: {
+                                size: 12
                             }
                         }
                     }
@@ -363,7 +361,7 @@
                 
                 const ul = document.createElement('ul');
                 buttonNames.forEach(name => {
-                    if (historicalData[date][name] || historicalData[date][name] === 0) {
+                    if (historicalData[date][name] !== undefined) {
                         const li = document.createElement('li');
                         li.textContent = `${name}: ${historicalData[date][name]}`;
                         ul.appendChild(li);
