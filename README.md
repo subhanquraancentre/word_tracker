@@ -1,4 +1,4 @@
-<WORD TRACKER>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -47,11 +47,11 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 10px;
-            width: 300px; /* Buttons ka size ek jaisa rakhne ke liye */
+            width: 300px;
             justify-content: space-between;
         }
         .counter-container button {
-            flex-grow: 1; /* Button ko poori jagah dene ke liye */
+            flex-grow: 1;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -68,7 +68,7 @@
             font-size: 24px;
             font-weight: bold;
             color: #2e7d32;
-            min-width: 40px; /* Counter ke liye fixed space */
+            min-width: 40px;
             text-align: right;
         }
         .chart-container {
@@ -79,6 +79,30 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-top: 30px;
+        }
+        .reset-button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .reset-button-container button {
+            padding: 10px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #f44336;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .reset-button-container button:hover {
+            background-color: #d32f2f;
+        }
+        .chart-title-container {
+            text-align: center;
+            color: #2e7d32;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.5em;
         }
 
         @media (max-width: 768px) {
@@ -131,7 +155,12 @@
         <div class="counter" id="counter4">0</div>
     </div>
 
+    <div class="reset-button-container">
+        <button id="resetButton">Reset 🔄</button>
+    </div>
+
     <div class="chart-container">
+        <div class="chart-title-container" id="chart-title">Daily Clicks</div>
         <canvas id="dailyChart"></canvas>
     </div>
 
@@ -140,9 +169,11 @@
         const buttonIds = ['button1', 'button2', 'button3', 'button4'];
         const counterIds = ['counter1', 'counter2', 'counter3', 'counter4'];
         
+        // Load historical data from local storage
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
         let today = new Date().toLocaleDateString();
         
+        // If today's data doesn't exist, initialize it
         if (!historicalData[today]) {
             historicalData[today] = {
                 'Alhamdulillah': 0,
@@ -152,32 +183,32 @@
             };
         }
 
+        // Update UI with today's counts
         buttonNames.forEach((name, index) => {
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
+        });
+
+        // Get dates for chart labels
+        const chartLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+        
+        // Prepare datasets for the chart
+        const datasets = buttonNames.map((name, index) => {
+            return {
+                label: name,
+                data: chartLabels.map(date => historicalData[date][name]),
+                backgroundColor: ['rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)', 'rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)'][index],
+                borderColor: ['rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)', 'rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)'][index],
+                borderWidth: 1,
+                fill: false
+            };
         });
 
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dailyChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: buttonNames,
-                datasets: [{
-                    label: today + ' Clicks',
-                    data: buttonNames.map(name => historicalData[today][name]),
-                    backgroundColor: [
-                        'rgba(76, 175, 80, 0.6)',
-                        'rgba(56, 142, 60, 0.6)',
-                        'rgba(76, 175, 80, 0.6)',
-                        'rgba(56, 142, 60, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(76, 175, 80, 1)',
-                        'rgba(56, 142, 60, 1)',
-                        'rgba(76, 175, 80, 1)',
-                        'rgba(56, 142, 60, 1)'
-                    ],
-                    borderWidth: 1
-                }]
+                labels: chartLabels,
+                datasets: datasets
             },
             options: {
                 scales: {
@@ -194,7 +225,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Daily Click Chart'
+                        text: 'Performance Over Time'
                     }
                 }
             }
@@ -202,7 +233,17 @@
 
         function updateData() {
             localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
-            dailyChart.data.datasets[0].data = buttonNames.map(name => historicalData[today][name]);
+            
+            // Update chart data for today
+            dailyChart.data.datasets.forEach(dataset => {
+                dataset.data = chartLabels.map(date => historicalData[date][dataset.label]);
+            });
+            
+            // Check if a new date needs to be added
+            const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+            if (JSON.stringify(updatedLabels) !== JSON.stringify(dailyChart.data.labels)) {
+                 dailyChart.data.labels = updatedLabels;
+            }
             dailyChart.update();
         }
 
@@ -213,6 +254,23 @@
                 document.getElementById(counterIds[index]).textContent = historicalData[today][buttonName];
                 updateData();
             });
+        });
+        
+        const resetButton = document.getElementById('resetButton');
+        resetButton.addEventListener('click', () => {
+            if (confirm("Kya aap sach mein sabhi counters ko reset karna chahte hain?")) {
+                historicalData[today] = {
+                    'Alhamdulillah': 0,
+                    'Jazakallah': 0,
+                    'Mashallah': 0,
+                    'Inshallah': 0
+                };
+                
+                buttonNames.forEach((name, index) => {
+                    document.getElementById(counterIds[index]).textContent = 0;
+                });
+                updateData();
+            }
         });
     </script>
 </body>
