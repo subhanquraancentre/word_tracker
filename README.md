@@ -14,17 +14,16 @@
             margin: 0;
             gap: 20px;
             
-            /* Background Image Properties */
             background-image: url('pakistan_bg.jpg');
             background-size: cover;
             background-position: center;
-            background-attachment: fixed; /* Parallax effect ke liye */
-            color: #fff; /* Text color ko white kiya hai background ke hisab se */
+            background-attachment: fixed;
+            color: #fff;
         }
         .header-container {
             text-align: center;
             margin-bottom: 20px;
-            background-color: rgba(46, 125, 50, 0.7); /* Thoda transparent dark green */
+            background-color: rgba(46, 125, 50, 0.7);
             padding: 20px;
             border-radius: 10px;
         }
@@ -42,7 +41,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background: rgba(255, 255, 255, 0.85); /* Thoda transparent white */
+            background: rgba(255, 255, 255, 0.85);
             padding: 20px 30px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -69,14 +68,13 @@
         .chart-container {
             width: 80%;
             max-width: 700px;
-            background: rgba(255, 255, 255, 0.85); /* Thoda transparent white */
+            background: rgba(255, 255, 255, 0.85);
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-top: 30px;
         }
 
-        /* Mobile-friendly adjustments */
         @media (max-width: 768px) {
             .header-container h1 {
                 font-size: 2em;
@@ -127,47 +125,39 @@
     </div>
 
     <script>
-        let counts = JSON.parse(localStorage.getItem('dailyCounts')) || {
-            date: new Date().toLocaleDateString(),
-            button1: 0,
-            button2: 0,
-            button3: 0,
-            button4: 0
-        };
-
-        const today = new Date().toLocaleDateString();
-        if (counts.date !== today) {
-            counts = {
-                date: today,
-                button1: 0,
-                button2: 0,
-                button3: 0,
-                button4: 0
+        // Data for all buttons
+        const buttonNames = ['Alhamdulillah', 'Jazakallah', 'Mashallah', 'Inshallah'];
+        const buttonIds = ['button1', 'button2', 'button3', 'button4'];
+        const counterIds = ['counter1', 'counter2', 'counter3', 'counter4'];
+        
+        // Load counts from local storage or initialize
+        let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
+        let today = new Date().toLocaleDateString();
+        
+        // If today's data doesn't exist, create it
+        if (!historicalData[today]) {
+            historicalData[today] = {
+                'Alhamdulillah': 0,
+                'Jazakallah': 0,
+                'Mashallah': 0,
+                'Inshallah': 0
             };
         }
 
-        const button1 = document.getElementById('button1');
-        const counter1 = document.getElementById('counter1');
-        const button2 = document.getElementById('button2');
-        const counter2 = document.getElementById('counter2');
-        const button3 = document.getElementById('button3');
-        const counter3 = document.getElementById('counter3');
-        const button4 = document.getElementById('button4');
-        const counter4 = document.getElementById('counter4');
+        // Update UI with today's counts
+        buttonNames.forEach((name, index) => {
+            document.getElementById(counterIds[index]).textContent = historicalData[today][name];
+        });
 
-        counter1.textContent = counts.button1;
-        counter2.textContent = counts.button2;
-        counter3.textContent = counts.button3;
-        counter4.textContent = counts.button4;
-
+        // Chart setup
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dailyChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Alhamdulillah', 'Jazakallah', 'Mashallah', 'Inshallah'],
+                labels: buttonNames,
                 datasets: [{
-                    label: 'Daily Clicks',
-                    data: [counts.button1, counts.button2, counts.button3, counts.button4],
+                    label: today + ' Clicks',
+                    data: buttonNames.map(name => historicalData[today][name]),
                     backgroundColor: [
                         'rgba(76, 175, 80, 0.6)',
                         'rgba(56, 142, 60, 0.6)',
@@ -204,34 +194,21 @@
             }
         });
 
+        // Function to update local storage and chart
         function updateData() {
-            localStorage.setItem('dailyCounts', JSON.stringify(counts));
-            dailyChart.data.datasets[0].data = [counts.button1, counts.button2, counts.button3, counts.button4];
+            localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
+            dailyChart.data.datasets[0].data = buttonNames.map(name => historicalData[today][name]);
             dailyChart.update();
         }
 
-        button1.addEventListener('click', () => {
-            counts.button1++;
-            counter1.textContent = counts.button1;
-            updateData();
-        });
-
-        button2.addEventListener('click', () => {
-            counts.button2++;
-            counter2.textContent = counts.button2;
-            updateData();
-        });
-        
-        button3.addEventListener('click', () => {
-            counts.button3++;
-            counter3.textContent = counts.button3;
-            updateData();
-        });
-
-        button4.addEventListener('click', () => {
-            counts.button4++;
-            counter4.textContent = counts.button4;
-            updateData();
+        // Add event listeners for each button
+        buttonIds.forEach((id, index) => {
+            document.getElementById(id).addEventListener('click', () => {
+                const buttonName = buttonNames[index];
+                historicalData[today][buttonName]++;
+                document.getElementById(counterIds[index]).textContent = historicalData[today][buttonName];
+                updateData();
+            });
         });
     </script>
 </body>
