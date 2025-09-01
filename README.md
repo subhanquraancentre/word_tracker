@@ -1,4 +1,3 @@
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,22 +10,31 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            background-color: #e8f5e9;
+            min-height: 100vh;
             margin: 0;
             gap: 20px;
+            
+            /* Background Image Properties */
+            background-image: url('pakistan_bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Parallax effect ke liye */
+            color: #fff; /* Text color ko white kiya hai background ke hisab se */
         }
         .header-container {
             text-align: center;
             margin-bottom: 20px;
+            background-color: rgba(46, 125, 50, 0.7); /* Thoda transparent dark green */
+            padding: 20px;
+            border-radius: 10px;
         }
         .header-container h1 {
-            color: #2e7d32;
+            color: #e8f5e9;
             font-size: 3em;
             margin: 0;
         }
         .header-container p {
-            color: #4caf50;
+            color: #c8e6c9;
             font-size: 1.2em;
             margin-top: 5px;
         }
@@ -34,7 +42,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.85); /* Thoda transparent white */
             padding: 20px 30px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -61,11 +69,29 @@
         .chart-container {
             width: 80%;
             max-width: 700px;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.85); /* Thoda transparent white */
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-top: 30px;
+        }
+
+        /* Mobile-friendly adjustments */
+        @media (max-width: 768px) {
+            .header-container h1 {
+                font-size: 2em;
+            }
+            .header-container p {
+                font-size: 1em;
+            }
+            .counter-container {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px 20px;
+            }
+            .chart-container {
+                width: 95%;
+            }
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -209,4 +235,4 @@
         });
     </script>
 </body>
-</html>
+
