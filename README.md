@@ -204,11 +204,19 @@
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
         let today = new Date().toLocaleDateString();
 
+        // Fix for "undefined" issue
         if (!historicalData[today]) {
             historicalData[today] = {};
             buttonNames.forEach(name => historicalData[today][name] = 0);
+        } else {
+            // Check if new buttons were added to existing data
+            buttonNames.forEach(name => {
+                if (typeof historicalData[today][name] === 'undefined') {
+                    historicalData[today][name] = 0;
+                }
+            });
         }
-
+        
         buttonNames.forEach((name, index) => {
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
@@ -326,9 +334,11 @@
                 
                 const ul = document.createElement('ul');
                 buttonNames.forEach(name => {
-                    const li = document.createElement('li');
-                    li.textContent = `${name}: ${historicalData[date][name]}`;
-                    ul.appendChild(li);
+                    if (typeof historicalData[date][name] !== 'undefined') {
+                        const li = document.createElement('li');
+                        li.textContent = `${name}: ${historicalData[date][name]}`;
+                        ul.appendChild(li);
+                    }
                 });
                 dataDisplay.appendChild(ul);
             });
