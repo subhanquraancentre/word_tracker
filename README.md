@@ -205,32 +205,30 @@
         const buttonIds = ['button1', 'button2', 'button3', 'button4', 'button5', 'button6'];
         const counterIds = ['counter1', 'counter2', 'counter3', 'counter4', 'counter5', 'counter6'];
 
-        let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
+        let historicalData = JSON.parse(localStorage.getItem('historicalWeeklyCounts')) || {};
         
-        // Get today's date in a consistent 'YYYY-MM-DD' format
-        const getTodayDate = () => {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
+        const getTodayDay = () => {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[new Date().getDay()];
         };
 
-        const today = getTodayDate();
-
-        // Ensure today's data structure is complete
-        if (!historicalData[today]) {
-            historicalData[today] = {};
+        const todayDay = getTodayDay();
+        
+        // Ensure today's day data structure is complete
+        if (!historicalData[todayDay]) {
+            historicalData[todayDay] = {};
+            buttonNames.forEach(name => historicalData[todayDay][name] = 0);
+        } else {
+            buttonNames.forEach(name => {
+                if (typeof historicalData[todayDay][name] === 'undefined') {
+                    historicalData[todayDay][name] = 0;
+                }
+            });
         }
-        buttonNames.forEach(name => {
-            if (typeof historicalData[today][name] === 'undefined') {
-                historicalData[today][name] = 0;
-            }
-        });
-
+        
         // Initialize counters from stored data
         buttonNames.forEach((name, index) => {
-            document.getElementById(counterIds[index]).textContent = historicalData[today][name];
+            document.getElementById(counterIds[index]).textContent = historicalData[todayDay][name];
         });
         
         const chartColors = [
@@ -244,25 +242,15 @@
 
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dailyChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar', // Ab line chart ke bajaye bar chart hai
             data: {
-                labels: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => {
-                    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                }),
+                labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                 datasets: buttonNames.map((name, index) => ({
                     label: name,
-                    data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name] || 0),
+                    data: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => historicalData[day]?.[name] || 0),
                     borderColor: chartColors[index],
                     backgroundColor: chartColors[index] + '40',
                     borderWidth: 2,
-                    fill: false,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: chartColors[index],
-                    pointBorderColor: '#fff',
-                    pointHoverRadius: 6,
-                    pointHoverBackgroundColor: chartColors[index],
-                    pointHoverBorderColor: '#fff'
                 }))
             },
             options: {
@@ -271,7 +259,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Performance Over Time',
+                        text: 'Weekly Performance',
                         color: '#2E7D32',
                         font: {
                             size: 20,
@@ -281,7 +269,7 @@
                     tooltip: {
                         callbacks: {
                             title: (tooltipItem) => {
-                                return `Date: ${tooltipItem[0].label}`;
+                                return `Day: ${tooltipItem[0].label}`;
                             },
                             label: (tooltipItem) => {
                                 const datasetLabel = dailyChart.data.datasets[tooltipItem.datasetIndex].label;
@@ -329,15 +317,13 @@
                     x: {
                         title: {
                             display: true,
-                            text: 'Date',
+                            text: 'Day of the Week',
                             color: '#2E7D32',
                             font: {
                                 size: 16
                             }
                         },
                         ticks: {
-                            autoSkip: true,
-                            maxTicksLimit: 10,
                             color: '#2E7D32',
                             font: {
                                 size: 12
@@ -352,16 +338,14 @@
         });
 
         function updateData() {
-            localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
+            localStorage.setItem('historicalWeeklyCounts', JSON.stringify(historicalData));
             
-            const sortedDates = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             
-            dailyChart.data.labels = sortedDates.map(date => {
-                return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            });
+            dailyChart.data.labels = daysOfWeek;
             
             buttonNames.forEach((name, index) => {
-                dailyChart.data.datasets[index].data = sortedDates.map(date => historicalData[date][name] || 0);
+                dailyChart.data.datasets[index].data = daysOfWeek.map(day => historicalData[day]?.[name] || 0);
             });
 
             dailyChart.update();
@@ -371,22 +355,22 @@
         buttonIds.forEach((id, index) => {
             document.getElementById(id).addEventListener('click', () => {
                 const buttonName = buttonNames[index];
-                historicalData[today][buttonName]++;
-                document.getElementById(counterIds[index]).textContent = historicalData[today][buttonName];
+                historicalData[todayDay][buttonName]++;
+                document.getElementById(counterIds[index]).textContent = historicalData[todayDay][buttonName];
                 updateData();
             });
         });
 
         const saveButton = document.getElementById('saveButton');
         saveButton.addEventListener('click', () => {
-            localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
+            localStorage.setItem('historicalWeeklyCounts', JSON.stringify(historicalData));
             alert("Data saved successfully!");
         });
         
         const resetButton = document.getElementById('resetButton');
         resetButton.addEventListener('click', () => {
             if (confirm("Kya aap sach mein aaj ke counters ko reset karna chahte hain?")) {
-                buttonNames.forEach(name => historicalData[today][name] = 0);
+                buttonNames.forEach(name => historicalData[todayDay][name] = 0);
                 
                 buttonNames.forEach((name, index) => {
                     document.getElementById(counterIds[index]).textContent = 0;
@@ -400,41 +384,28 @@
             const dataDisplay = document.getElementById('data-display');
             dataDisplay.innerHTML = '';
             
-            const sortedDates = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+            const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-            sortedDates.forEach(date => {
-                const dateDiv = document.createElement('div');
-                dateDiv.classList.add('date-data');
-                dateDiv.innerHTML = `**Date: ${new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}**`;
-                dataDisplay.appendChild(dateDiv);
-                
-                const ul = document.createElement('ul');
-                buttonNames.forEach(name => {
-                    if (historicalData[date][name] !== undefined) {
-                        const li = document.createElement('li');
-                        li.textContent = `${name}: ${historicalData[date][name]}`;
-                        ul.appendChild(li);
-                    }
-                });
-                dataDisplay.appendChild(ul);
+            daysOfWeek.forEach(day => {
+                const dayData = historicalData[day];
+                if (dayData) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.classList.add('date-data');
+                    dayDiv.innerHTML = `**Day: ${day}**`;
+                    dataDisplay.appendChild(dayDiv);
+                    
+                    const ul = document.createElement('ul');
+                    buttonNames.forEach(name => {
+                        if (dayData[name] !== undefined) {
+                            const li = document.createElement('li');
+                            li.textContent = `${name}: ${dayData[name]}`;
+                            ul.appendChild(li);
+                        }
+                    });
+                    dataDisplay.appendChild(ul);
+                }
             });
         }
-        
-        // This is a new function to clear localStorage and fix the date issue
-        function clearLocalStorageForTesting() {
-            if (localStorage.getItem('historicalCounts')) {
-                const existingData = JSON.parse(localStorage.getItem('historicalCounts'));
-                // Check for old date formats and clear them
-                const isOldFormat = Object.keys(existingData).some(key => key.includes('/'));
-                if (isOldFormat) {
-                    localStorage.removeItem('historicalCounts');
-                    console.log("Old date format detected and cleared. Please refresh the page.");
-                }
-            }
-        }
-        
-        // Call this function once to clear old data
-        //clearLocalStorageForTesting(); // Uncomment this line if you need to clear old data.
         
         updateData();
     </script>
