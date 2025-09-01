@@ -206,8 +206,17 @@
         const counterIds = ['counter1', 'counter2', 'counter3', 'counter4', 'counter5', 'counter6'];
 
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
-        // Get today's date in 'M/D/YYYY' format for consistent key
-        const today = new Date().toLocaleDateString();
+        
+        // Get today's date in a consistent 'YYYY-MM-DD' format
+        const getTodayDate = () => {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const today = getTodayDate();
 
         // Ensure today's data structure is complete
         if (!historicalData[today]) {
@@ -410,6 +419,22 @@
                 dataDisplay.appendChild(ul);
             });
         }
+        
+        // This is a new function to clear localStorage and fix the date issue
+        function clearLocalStorageForTesting() {
+            if (localStorage.getItem('historicalCounts')) {
+                const existingData = JSON.parse(localStorage.getItem('historicalCounts'));
+                // Check for old date formats and clear them
+                const isOldFormat = Object.keys(existingData).some(key => key.includes('/'));
+                if (isOldFormat) {
+                    localStorage.removeItem('historicalCounts');
+                    console.log("Old date format detected and cleared. Please refresh the page.");
+                }
+            }
+        }
+        
+        // Call this function once to clear old data
+        //clearLocalStorageForTesting(); // Uncomment this line if you need to clear old data.
         
         updateData();
     </script>
