@@ -14,6 +14,7 @@
             min-height: 100vh;
             margin: 0;
             gap: 20px;
+            
             background-image: url('quran_bg.jpg');
             background-size: cover;
             background-position: center;
@@ -220,7 +221,6 @@
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
         
-        // Green color scheme
         const chartColors = [
             '#4CAF50',
             '#66BB6A',
@@ -244,7 +244,7 @@
                     backgroundColor: chartColors[index] + '40',
                     borderWidth: 2,
                     fill: false,
-                    tension: 0.4 // Slightly more curve for a modern look
+                    tension: 0.4
                 }))
             },
             options: {
