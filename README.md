@@ -14,7 +14,6 @@
             min-height: 100vh;
             margin: 0;
             gap: 20px;
-            
             background-image: url('quran_bg.jpg');
             background-size: cover;
             background-position: center;
@@ -221,13 +220,14 @@
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
         
+        // Green color scheme
         const chartColors = [
             '#4CAF50',
-            '#2196F3',
-            '#FFC107',
-            '#E91E63',
-            '#9C27B0',
-            '#00BCD4'
+            '#66BB6A',
+            '#81C784',
+            '#A5D6A7',
+            '#C8E6C9',
+            '#E8F5E9'
         ];
 
         const ctx = document.getElementById('dailyChart').getContext('2d');
@@ -244,8 +244,7 @@
                     backgroundColor: chartColors[index] + '40',
                     borderWidth: 2,
                     fill: false,
-                    tension: 0.1,
-                    hidden: false // Ensure all datasets are visible by default
+                    tension: 0.4 // Slightly more curve for a modern look
                 }))
             },
             options: {
@@ -254,7 +253,12 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Performance Over Time'
+                        text: 'Performance Over Time',
+                        color: '#2E7D32',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -284,17 +288,25 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Clicks'
+                            text: 'Clicks',
+                            color: '#2E7D32'
+                        },
+                        grid: {
+                            color: '#e0e0e0'
                         }
                     },
                     x: {
                         title: {
                             display: true,
-                            text: 'Date'
+                            text: 'Date',
+                            color: '#2E7D32'
                         },
                         ticks: {
                             autoSkip: true,
                             maxTicksLimit: 10
+                        },
+                        grid: {
+                            color: '#e0e0e0'
                         }
                     }
                 }
