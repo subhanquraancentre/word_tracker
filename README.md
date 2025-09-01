@@ -1,3 +1,4 @@
+<WORD TRACKER>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,7 +15,7 @@
             margin: 0;
             gap: 20px;
             
-            background-image: url('pakistan_bg.jpg');
+            background-image: url('quran_bg.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -46,8 +47,11 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-bottom: 10px;
+            width: 300px; /* Buttons ka size ek jaisa rakhne ke liye */
+            justify-content: space-between;
         }
         .counter-container button {
+            flex-grow: 1; /* Button ko poori jagah dene ke liye */
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -64,6 +68,8 @@
             font-size: 24px;
             font-weight: bold;
             color: #2e7d32;
+            min-width: 40px; /* Counter ke liye fixed space */
+            text-align: right;
         }
         .chart-container {
             width: 80%;
@@ -83,9 +89,14 @@
                 font-size: 1em;
             }
             .counter-container {
-                flex-direction: column;
-                gap: 10px;
+                width: 90%;
+                flex-direction: row;
+                justify-content: space-between;
                 padding: 15px 20px;
+            }
+            .counter-container button {
+                flex-grow: 0;
+                width: 65%;
             }
             .chart-container {
                 width: 95%;
@@ -125,16 +136,13 @@
     </div>
 
     <script>
-        // Data for all buttons
         const buttonNames = ['Alhamdulillah', 'Jazakallah', 'Mashallah', 'Inshallah'];
         const buttonIds = ['button1', 'button2', 'button3', 'button4'];
         const counterIds = ['counter1', 'counter2', 'counter3', 'counter4'];
         
-        // Load counts from local storage or initialize
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
         let today = new Date().toLocaleDateString();
         
-        // If today's data doesn't exist, create it
         if (!historicalData[today]) {
             historicalData[today] = {
                 'Alhamdulillah': 0,
@@ -144,12 +152,10 @@
             };
         }
 
-        // Update UI with today's counts
         buttonNames.forEach((name, index) => {
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
 
-        // Chart setup
         const ctx = document.getElementById('dailyChart').getContext('2d');
         const dailyChart = new Chart(ctx, {
             type: 'bar',
@@ -194,14 +200,12 @@
             }
         });
 
-        // Function to update local storage and chart
         function updateData() {
             localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
             dailyChart.data.datasets[0].data = buttonNames.map(name => historicalData[today][name]);
             dailyChart.update();
         }
 
-        // Add event listeners for each button
         buttonIds.forEach((id, index) => {
             document.getElementById(id).addEventListener('click', () => {
                 const buttonName = buttonNames[index];
@@ -212,4 +216,3 @@
         });
     </script>
 </body>
-
