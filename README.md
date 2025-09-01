@@ -74,8 +74,9 @@
             text-align: right;
         }
         .chart-container {
-            width: 80%;
-            max-width: 700px;
+            width: 90%;
+            max-width: 900px;
+            height: 400px;
             background: rgba(255, 255, 255, 0.85);
             padding: 20px;
             border-radius: 10px;
@@ -142,6 +143,7 @@
             }
             .chart-container {
                 width: 95%;
+                height: 300px;
             }
             .button-group-container {
                 flex-direction: column;
@@ -204,19 +206,20 @@
         const counterIds = ['counter1', 'counter2', 'counter3', 'counter4', 'counter5', 'counter6'];
 
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
-        let today = new Date().toLocaleDateString();
+        // Get today's date in 'M/D/YYYY' format for consistent key
+        const today = new Date().toLocaleDateString();
 
+        // Ensure today's data structure is complete
         if (!historicalData[today]) {
             historicalData[today] = {};
-            buttonNames.forEach(name => historicalData[today][name] = 0);
-        } else {
-            buttonNames.forEach(name => {
-                if (typeof historicalData[today][name] === 'undefined') {
-                    historicalData[today][name] = 0;
-                }
-            });
         }
-        
+        buttonNames.forEach(name => {
+            if (typeof historicalData[today][name] === 'undefined') {
+                historicalData[today][name] = 0;
+            }
+        });
+
+        // Initialize counters from stored data
         buttonNames.forEach((name, index) => {
             document.getElementById(counterIds[index]).textContent = historicalData[today][name];
         });
@@ -244,7 +247,13 @@
                     backgroundColor: chartColors[index] + '40',
                     borderWidth: 2,
                     fill: false,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: chartColors[index],
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: chartColors[index],
+                    pointHoverBorderColor: '#fff'
                 }))
             },
             options: {
@@ -256,7 +265,7 @@
                         text: 'Performance Over Time',
                         color: '#2E7D32',
                         font: {
-                            size: 18,
+                            size: 20,
                             weight: 'bold'
                         }
                     },
@@ -266,20 +275,24 @@
                                 return `Date: ${tooltipItem[0].label}`;
                             },
                             label: (tooltipItem) => {
-                                const datasetLabel = tooltipItem.dataset.label;
+                                const datasetLabel = dailyChart.data.datasets[tooltipItem.datasetIndex].label;
                                 const value = tooltipItem.raw;
                                 return `${datasetLabel}: ${value}`;
                             }
-                        }
+                        },
+                        backgroundColor: 'rgba(46, 125, 50, 0.9)',
+                        bodyColor: '#fff',
+                        titleColor: '#fff'
                     },
                     legend: {
                         display: true,
-                        position: 'top',
+                        position: 'bottom',
                         labels: {
                             color: '#2E7D32',
                             font: {
-                                size: 12
-                            }
+                                size: 14
+                            },
+                            boxWidth: 20
                         }
                     }
                 },
@@ -288,25 +301,41 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Clicks',
-                            color: '#2E7D32'
+                            text: 'Counts',
+                            color: '#2E7D32',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        ticks: {
+                            color: '#2E7D32',
+                            font: {
+                                size: 12
+                            }
                         },
                         grid: {
-                            color: '#e0e0e0'
+                            color: 'rgba(224, 224, 224, 0.5)'
                         }
                     },
                     x: {
                         title: {
                             display: true,
                             text: 'Date',
-                            color: '#2E7D32'
+                            color: '#2E7D32',
+                            font: {
+                                size: 16
+                            }
                         },
                         ticks: {
                             autoSkip: true,
-                            maxTicksLimit: 10
+                            maxTicksLimit: 10,
+                            color: '#2E7D32',
+                            font: {
+                                size: 12
+                            }
                         },
                         grid: {
-                            color: '#e0e0e0'
+                            color: 'rgba(224, 224, 224, 0.5)'
                         }
                     }
                 }
@@ -316,13 +345,14 @@
         function updateData() {
             localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
             
-            const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => {
+            const sortedDates = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+            
+            dailyChart.data.labels = sortedDates.map(date => {
                 return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             });
-            dailyChart.data.labels = updatedLabels;
             
             buttonNames.forEach((name, index) => {
-                dailyChart.data.datasets[index].data = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name] || 0);
+                dailyChart.data.datasets[index].data = sortedDates.map(date => historicalData[date][name] || 0);
             });
 
             dailyChart.update();
@@ -332,9 +362,6 @@
         buttonIds.forEach((id, index) => {
             document.getElementById(id).addEventListener('click', () => {
                 const buttonName = buttonNames[index];
-                if (typeof historicalData[today][buttonName] === 'undefined') {
-                     historicalData[today][buttonName] = 0;
-                }
                 historicalData[today][buttonName]++;
                 document.getElementById(counterIds[index]).textContent = historicalData[today][buttonName];
                 updateData();
@@ -364,9 +391,9 @@
             const dataDisplay = document.getElementById('data-display');
             dataDisplay.innerHTML = '';
             
-            const chartLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+            const sortedDates = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
 
-            chartLabels.forEach(date => {
+            sortedDates.forEach(date => {
                 const dateDiv = document.createElement('div');
                 dateDiv.classList.add('date-data');
                 dateDiv.innerHTML = `**Date: ${new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}**`;
