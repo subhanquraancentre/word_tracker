@@ -57,17 +57,17 @@
             cursor: pointer;
             border: none;
             border-radius: 5px;
-            background-color: #4caf50;
+            background-color: #4CAF50;
             color: white;
             transition: background-color 0.3s;
         }
         .counter-container button:hover {
-            background-color: #388e3c;
+            background-color: #388E3C;
         }
         .counter {
             font-size: 24px;
             font-weight: bold;
-            color: #2e7d32;
+            color: #2E7D32;
             min-width: 40px;
             text-align: right;
         }
@@ -80,27 +80,41 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin-top: 30px;
         }
-        .reset-button-container {
-            text-align: center;
+        .button-group-container {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
-        .reset-button-container button {
-            padding: 10px 30px;
-            font-size: 18px;
+        .button-group-container button {
+            padding: 10px 20px;
+            font-size: 16px;
             cursor: pointer;
             border: none;
             border-radius: 5px;
-            background-color: #f44336;
             color: white;
             transition: background-color 0.3s;
         }
-        .reset-button-container button:hover {
-            background-color: #d32f2f;
+        #saveButton {
+            background-color: #2196F3;
+        }
+        #saveButton:hover {
+            background-color: #1976D2;
+        }
+        #resetButton {
+            background-color: #F44336;
+        }
+        #resetButton:hover {
+            background-color: #D32F2F;
         }
         .chart-data-container {
             margin-top: 20px;
             font-size: 1em;
-            color: #2e7d32;
+            color: #2E7D32;
+            width: 80%;
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 10px;
         }
         .date-data {
             font-weight: bold;
@@ -126,6 +140,10 @@
             }
             .chart-container {
                 width: 95%;
+            }
+            .button-group-container {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
@@ -156,8 +174,19 @@
         <button id="button4">Inshallah</button>
         <div class="counter" id="counter4">0</div>
     </div>
+    
+    <div class="counter-container">
+        <button id="button5">Ya Rahamkallah</button>
+        <div class="counter" id="counter5">0</div>
+    </div>
+    
+    <div class="counter-container">
+        <button id="button6">Subhanallah</button>
+        <div class="counter" id="counter6">0</div>
+    </div>
 
-    <div class="reset-button-container">
+    <div class="button-group-container">
+        <button id="saveButton">Save ✔️</button>
         <button id="resetButton">Reset 🔄</button>
     </div>
 
@@ -168,20 +197,16 @@
     <div class="chart-data-container" id="data-display"></div>
 
     <script>
-        const buttonNames = ['Alhamdulillah', 'Jazakallah', 'Mashallah', 'Inshallah'];
-        const buttonIds = ['button1', 'button2', 'button3', 'button4'];
-        const counterIds = ['counter1', 'counter2', 'counter3', 'counter4'];
-        
+        const buttonNames = ['Alhamdulillah', 'Jazakallah', 'Mashallah', 'Inshallah', 'Ya Rahamkallah', 'Subhanallah'];
+        const buttonIds = ['button1', 'button2', 'button3', 'button4', 'button5', 'button6'];
+        const counterIds = ['counter1', 'counter2', 'counter3', 'counter4', 'counter5', 'counter6'];
+
         let historicalData = JSON.parse(localStorage.getItem('historicalCounts')) || {};
         let today = new Date().toLocaleDateString();
-        
+
         if (!historicalData[today]) {
-            historicalData[today] = {
-                'Alhamdulillah': 0,
-                'Jazakallah': 0,
-                'Mashallah': 0,
-                'Inshallah': 0
-            };
+            historicalData[today] = {};
+            buttonNames.forEach(name => historicalData[today][name] = 0);
         }
 
         buttonNames.forEach((name, index) => {
@@ -196,8 +221,8 @@
                 datasets: buttonNames.map((name, index) => ({
                     label: name,
                     data: Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b)).map(date => historicalData[date][name]),
-                    backgroundColor: ['rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)', 'rgba(76, 175, 80, 0.6)', 'rgba(56, 142, 60, 0.6)'][index],
-                    borderColor: ['rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)', 'rgba(76, 175, 80, 1)', 'rgba(56, 142, 60, 1)'][index],
+                    borderColor: ['#4CAF50', '#388E3C', '#2E7D32', '#1B5E20', '#A5D6A7', '#66BB6A'][index],
+                    backgroundColor: ['rgba(76, 175, 80, 0.2)', 'rgba(56, 142, 60, 0.2)', 'rgba(46, 125, 50, 0.2)', 'rgba(27, 94, 32, 0.2)', 'rgba(165, 214, 167, 0.2)', 'rgba(102, 187, 106, 0.2)'][index],
                     borderWidth: 2,
                     fill: false,
                     tension: 0.1
@@ -247,66 +272,3 @@
             
             const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
             dailyChart.data.labels = updatedLabels;
-            
-            buttonNames.forEach((name, index) => {
-                dailyChart.data.datasets[index].data = updatedLabels.map(date => historicalData[date][name]);
-            });
-
-            dailyChart.update();
-            displayTableData();
-        }
-
-        buttonIds.forEach((id, index) => {
-            document.getElementById(id).addEventListener('click', () => {
-                const buttonName = buttonNames[index];
-                historicalData[today][buttonName]++;
-                document.getElementById(counterIds[index]).textContent = historicalData[today][buttonName];
-                updateData();
-            });
-        });
-        
-        const resetButton = document.getElementById('resetButton');
-        resetButton.addEventListener('click', () => {
-            if (confirm("Kya aap sach mein sabhi counters ko reset karna chahte hain?")) {
-                historicalData = {
-                    [today]: {
-                        'Alhamdulillah': 0,
-                        'Jazakallah': 0,
-                        'Mashallah': 0,
-                        'Inshallah': 0
-                    }
-                };
-                
-                buttonNames.forEach((name, index) => {
-                    document.getElementById(counterIds[index]).textContent = 0;
-                });
-                updateData();
-            }
-        });
-        
-        function displayTableData() {
-            const dataDisplay = document.getElementById('data-display');
-            dataDisplay.innerHTML = ''; // Clear previous data
-            
-            const chartLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
-
-            chartLabels.forEach(date => {
-                const dateDiv = document.createElement('div');
-                dateDiv.classList.add('date-data');
-                dateDiv.innerHTML = `**Date: ${date}**`;
-                dataDisplay.appendChild(dateDiv);
-                
-                const ul = document.createElement('ul');
-                buttonNames.forEach(name => {
-                    const li = document.createElement('li');
-                    li.textContent = `${name}: ${historicalData[date][name]}`;
-                    ul.appendChild(li);
-                });
-                dataDisplay.appendChild(ul);
-            });
-        }
-        
-        // Initial call to display data
-        displayTableData();
-    </script>
-</body>
