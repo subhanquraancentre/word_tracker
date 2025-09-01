@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -272,3 +272,69 @@
             
             const updatedLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
             dailyChart.data.labels = updatedLabels;
+            
+            buttonNames.forEach((name, index) => {
+                dailyChart.data.datasets[index].data = updatedLabels.map(date => historicalData[date][name]);
+            });
+
+            dailyChart.update();
+            displayTableData();
+        }
+
+        buttonIds.forEach((id, index) => {
+            document.getElementById(id).addEventListener('click', () => {
+                const buttonName = buttonNames[index];
+                if (typeof historicalData[today][buttonName] === 'undefined') {
+                     historicalData[today][buttonName] = 0;
+                }
+                historicalData[today][buttonName]++;
+                document.getElementById(counterIds[index]).textContent = historicalData[today][buttonName];
+                updateData();
+            });
+        });
+
+        const saveButton = document.getElementById('saveButton');
+        saveButton.addEventListener('click', () => {
+            localStorage.setItem('historicalCounts', JSON.stringify(historicalData));
+            alert("Data saved successfully!");
+        });
+        
+        const resetButton = document.getElementById('resetButton');
+        resetButton.addEventListener('click', () => {
+            if (confirm("Kya aap sach mein aaj ke counters ko reset karna chahte hain?")) {
+                buttonNames.forEach(name => historicalData[today][name] = 0);
+                
+                buttonNames.forEach((name, index) => {
+                    document.getElementById(counterIds[index]).textContent = 0;
+                });
+                updateData();
+                alert("Data reset for today.");
+            }
+        });
+        
+        function displayTableData() {
+            const dataDisplay = document.getElementById('data-display');
+            dataDisplay.innerHTML = '';
+            
+            const chartLabels = Object.keys(historicalData).sort((a, b) => new Date(a) - new Date(b));
+
+            chartLabels.forEach(date => {
+                const dateDiv = document.createElement('div');
+                dateDiv.classList.add('date-data');
+                dateDiv.innerHTML = `**Date: ${date}**`;
+                dataDisplay.appendChild(dateDiv);
+                
+                const ul = document.createElement('ul');
+                buttonNames.forEach(name => {
+                    const li = document.createElement('li');
+                    li.textContent = `${name}: ${historicalData[date][name]}`;
+                    ul.appendChild(li);
+                });
+                dataDisplay.appendChild(ul);
+            });
+        }
+        
+        updateData();
+    </script>
+</body>
+</html>
